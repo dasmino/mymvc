@@ -74,10 +74,34 @@ class Router{
 				if(is_callable($action)){
 					call_user_func_array($action, $params);
 				}
+				elseif(is_string($action)){
+					$this->compieRoute($action,$params);
+				}
 				return;
 			}
 		}
 		return;
+	}
+
+	private function compieRoute($action, $params){
+		if (count(explode('@', $action)) !==2) {
+			die('Router error !!!');
+		}
+		$className = explode('@', $action)[0];
+		$MethodName = explode('@', $action)[1];
+		
+		$classNamespace = 'app\\controllers\\'.$className;
+
+		if( class_exists($classNamespace)){
+			$object = new $classNamespace;
+			if( method_exists($classNamespace, $MethodName)){
+				call_user_func_array([$object,$MethodName], $params);
+			}else{
+				die('<h1>class'.$MethodName.'not found</h1>');
+			}
+			}else{
+				die('<h1>class'.$classNamespace.'not found</h1>');
+		}
 	}
 	function run(){
 		// echo "Router Running";

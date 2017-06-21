@@ -1,11 +1,14 @@
 <?php 
    require_once(dirname(__FILE__).'/Router.php');
+   require_once(dirname(__FILE__).'/../controllers/HomeController.php');
    class App
    {
    	 private $router;
    	function __construct()
    	{
        $this->router = new Router;
+
+       $this->router->get('/{list}/{page}','HomeController@index');
        $this->router->get('/{id}',function(){
        	 echo 'day la tran App';
        });
@@ -21,7 +24,7 @@
        	  echo 'page: '.$page;
        });
        $this->router->any('*',function(){
-       	echo '404 notfound';
+       	echo '<h1>404 notfound</h1>';
        }); 
    	}
    	function run(){
