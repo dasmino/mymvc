@@ -1,4 +1,5 @@
 <?php 
+namespace app\core;
 class Router{
  
      private $routers = [];
@@ -6,7 +7,7 @@ class Router{
 
 	}
 	private function getRequestUrl(){
-		$basePath = App::getConfig()['basePath'];
+		$basePath = \App::getConfig()['basePath'];
 		$url =  isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/';
 		$url = str_replace($basePath, '', $url);
 		$url = $url === '' || empty($url) ? '/' : $url;
@@ -101,7 +102,7 @@ class Router{
 				die('<h1>class'.$MethodName.'not found</h1>');
 			}
 			}else{
-				die('<h1>class'.$classNamespace.'not found</h1>');
+				die('<h1>class '.$classNamespace.' not found</h1>');
 		}
 	}
 	function run(){

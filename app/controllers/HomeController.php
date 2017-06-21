@@ -12,11 +12,9 @@
     		// echo 'HomeController';
     	}
 
-    	function index($list,$page){
+    	function index(){
 
     		echo "Home index";
-    		echo $page;
-    		echo $list;
     	}
     }
  

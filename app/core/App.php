@@ -1,6 +1,9 @@
 <?php 
    require_once(dirname(__FILE__).'/Router.php');
-   require_once(dirname(__FILE__).'/../controllers/HomeController.php');
+   // require_once(dirname(__FILE__).'/../controllers/HomeController.php');
+   require_once(dirname(__FILE__).'/Autoload.php');
+
+   use app\core\Router;
    class App
    {
    	private $router;
@@ -8,9 +11,10 @@
     public static $config;
    	function __construct()
    	{
+       new Autoload;
        $this->router = new Router;
 
-       $this->router->get('/{list}/{page}','HomeController@index');
+       $this->router->get('/','HomeController@index');
        $this->router->get('/{id}',function(){
        	 echo 'day la tran App';
        });
