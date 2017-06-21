@@ -1,119 +1,133 @@
-<?php 
-namespace app\core;
-class Router{
- 
-     private $routers = [];
-	function __construct(){
+<?php
+	/**
+	* Router
+	*/
+	class Router
+	{
+		private static $routers = [];
 
-	}
-	private function getRequestUrl(){
-		$basePath = \App::getConfig()['basePath'];
-		$url =  isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/';
-		$url = str_replace($basePath, '', $url);
-		$url = $url === '' || empty($url) ? '/' : $url;
-		return $url;
-	}
-	private function getRequestMethod(){
-		$method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';
-		return $method;
-	}
-	
-	private function addRouter($method,$url,$action){
-       $this->routers[] = [$method,$url,$action];
-	}
-	public function get($url,$action){
-       $this->addRouter('GET',$url,$action);
-	}
-	public function post($url,$action){
-       $this->addRouter('POST',$url,$action);
-      
-	}
-	public function any($url,$action){
-       $this->addRouter('GET|POST',$url,$action);
-      
-	}
-	public function map(){
-		$checkRoute = false;
-		$params = [];
-		$requestURL = $this->getRequestURL();
-		// echo $requestURL.'<br>';
-		$requestMethod = $this->getRequestMethod();
-		$routers = $this->routers;
-		foreach ($routers as  $route) {
-			list($method,$url,$action) = $route;
-		// echo $url.'<br>';
+		private $basePath;
 
-			if(strrpos($method, $requestMethod) === FALSE){
-				  continue;
-			}
+		function __construct($basePath)
+		{
+			$this->basePath = $basePath;
+		}
 
-			if($url === '*'){
-				$checkRoute = true;
-			}elseif(strrpos($url, '{') === FALSE){
-               if( strcmp(strtolower($url), strtolower($requestURL)) === 0 ){
-               		$checkRoute = true;
-               }else{
-                  	continue;
-               }
-			}elseif(strrpos($url, '}') === FALSE){
-               	    continue;
-	           }else{
-	           	$routeParams = explode('/', $url);
-	           	$requestParams = explode('/', $requestURL);
-	           	if(count($routeParams) !== count($requestParams)){
-	           		continue;
-	           	}
-	           	foreach ($routeParams as $k => $rp) {
-	           		if( preg_match('/^{\w+}$/', $rp)){
-	           			$params[] = $requestParams[$k];
-	           		}
-	           	}
-                $checkRoute = true;
-	           }
-            
+		private function getRequestURL(){
 
-			if($checkRoute === true){
-				if(is_callable($action)){
-					call_user_func_array($action, $params);
+			$url = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/';
+			$url = str_replace($this->basePath, '', $url);
+			$url = $url === '' || empty($url) ? '/' : $url;
+
+			return $url;
+		}
+
+		private function getRequestMethod(){
+			$method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';
+			return $method;
+		}
+
+		private static function addRouter($method,$url,$action){
+			self::$routers[] = [$method,$url,$action];
+		}
+
+		public static function get($url,$action){
+			self::addRouter('GET',$url,$action);
+		}
+
+		public static function post($url,$action){
+			self::addRouter('POST',$url,$action);
+		}
+
+		public static function any($url,$action){
+			self::addRouter('GET|POST',$url,$action);
+		}
+
+		public function map(){
+
+			$checkRoute = false;
+			$params 	= [];
+
+			$requestURL = $this->getRequestURL();
+			$requestMethod = $this->getRequestMethod();
+			$routers = self::$routers;
+			
+			foreach( $routers as $route ){
+				list($method,$url,$action) = $route;
+
+				if( strpos($method, $requestMethod) === FALSE ){
+					continue;
 				}
-				elseif(is_string($action)){
-					$this->compieRoute($action,$params);
+
+				if( $url === '*' ){
+					$checkRoute = true;
+				}elseif( strpos($url, '{') === FALSE ){
+					if( strcmp(strtolower($url), strtolower($requestURL)) === 0 ){
+						$checkRoute = true;
+					}else{
+						continue;
+					}
+				}elseif( strpos($url, '}') === FALSE ){
+					continue;
+				}else{
+					$routeParams 	= explode('/', $url);
+					$requestParams 	= explode('/', $requestURL);
+
+					if( count($routeParams) !== count($requestParams) ){
+						continue;
+					}
+
+					foreach( $routeParams as $k => $rp ){
+						if( preg_match('/^{\w+}$/',$rp) ){
+							$params[] = $requestParams[$k];
+						}
+					}
+					
+					$checkRoute = true;
 				}
-				return;
+
+				if( $checkRoute === true ){
+					if( is_callable($action) ){
+						call_user_func_array($action, $params);
+					}
+					elseif( is_string($action) ){
+						$this->compieRoute($action,$params);
+					}
+					return;
+				}else{
+					continue;
+				}
+			}
+			return;
+		}
+
+		private function compieRoute($action, $params){
+
+			if( count(explode('@', $action)) !== 2 ){
+				die('Router error');
+			}
+
+			$className = explode('@', $action)[0];
+			$methodName = explode('@', $action)[1];
+
+			$classNamespace = 'app\\controllers\\'.$className;
+
+			if( class_exists($classNamespace) ){
+				App::setController($className);
+				$object = new $classNamespace;
+				if( method_exists($classNamespace, $methodName) ){
+					App::setAction($methodName);
+					call_user_func_array([$object,$methodName], $params);
+				}else{
+					die('Method "'.$methodName.'" not found');
+				}
+			}else{
+				die('Class "'.$classNamespace.'" not found');
 			}
 		}
-		return;
-	}
 
-	private function compieRoute($action, $params){
-		if (count(explode('@', $action)) !==2) {
-			die('Router error !!!');
-		}
-		$className = explode('@', $action)[0];
-		$MethodName = explode('@', $action)[1];
-		
-		$classNamespace = 'app\\controllers\\'.$className;
-
-		if( class_exists($classNamespace)){
-			$object = new $classNamespace;
-			if( method_exists($classNamespace, $MethodName)){
-				call_user_func_array([$object,$MethodName], $params);
-			}else{
-				die('<h1>class'.$MethodName.'not found</h1>');
-			}
-			}else{
-				die('<h1>class '.$classNamespace.' not found</h1>');
+		function run(){
+			$this->map();
 		}
 	}
-	function run(){
-		// echo "Router Running";
-		// $method = $this->getRequestMethod();
-		// echo $method;
-		// echo '<pre>';
-		// print_r($this->routers);
-		$this->map();
-	}
-
-}
-
 ?>

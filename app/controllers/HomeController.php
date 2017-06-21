@@ -1,21 +1,25 @@
-<?php 	
-    namespace app\controllers;
+<?php
+	namespace app\controllers;
+	use app\core\Controller;
+	use \App;
 
-    /**
-    * 
-    */
-    class HomeController 
-    {
-    	
-    	function __construct()
-    	{
-    		// echo 'HomeController';
-    	}
+	/**
+	* HomeController
+	*/
+	class HomeController extends Controller
+	{
+		
+		function __construct()
+		{
+			// echo 'Home Controller';
+		}
 
-    	function index(){
-
-    		echo "Home index";
-    	}
-    }
- 
- ?>	
+		public function index(){
+			// echo 'home index';
+			$this->render('index');
+			// $this->redirect('http://google.com');
+			// echo App::getController();
+			// echo App::getAction();
+		}
+	}
+?>
