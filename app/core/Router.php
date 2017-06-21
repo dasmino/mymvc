@@ -6,8 +6,9 @@ class Router{
 
 	}
 	private function getRequestUrl(){
+		$basePath = App::getConfig()['basePath'];
 		$url =  isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/';
-		$url = str_replace('/mymvc/public', '', $url);
+		$url = str_replace($basePath, '', $url);
 		$url = $url === '' || empty($url) ? '/' : $url;
 		return $url;
 	}

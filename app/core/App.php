@@ -3,7 +3,9 @@
    require_once(dirname(__FILE__).'/../controllers/HomeController.php');
    class App
    {
-   	 private $router;
+   	private $router;
+
+    public static $config;
    	function __construct()
    	{
        $this->router = new Router;
@@ -27,6 +29,12 @@
        	echo '<h1>404 notfound</h1>';
        }); 
    	}
+    public static function setConfig($config){
+      self::$config = $config;
+    }
+    public static function getConfig(){
+      return self::$config;
+    }
    	function run(){
    		$this->router->run();
    	}
