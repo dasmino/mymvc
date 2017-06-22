@@ -1,7 +1,8 @@
 <?php
 	return [
-		'basePath'	=> '/www/my-framework/public',
+		'basePath'	=> '/mymvc/public',
 		'rootDir'	=> dirname(__DIR__),
+		'layout'	=> 'layouts/main',
 		'db'		=> [
 			'host'		=> '127.0.0.1',
 			'port'		=> 3306,
